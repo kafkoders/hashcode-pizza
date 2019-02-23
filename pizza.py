@@ -1,19 +1,9 @@
 import pandas as pd
 import numpy as np
 import math
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 input_files = ['a_example', 'b_small', 'c_medium', 'd_big']
-
-
-def check_less_ingredient(pizza_):
-    total_tomatoes = len(pizza_[pizza_.values == 0])
-    total_mushrooms = len(pizza_[pizza_.values == 1])
-    less_ingredient = 'tomatoes' if total_tomatoes < total_mushrooms else 'mushrooms'
-
-    return less_ingredient
 
 
 def create_pizza_dataset(file_):
@@ -31,13 +21,10 @@ def create_pizza_dataset(file_):
     df = pd.DataFrame(elements_)
     pizza_ = df.replace(['M', 'T'], [1, 0])
 
-    less_ingredient = check_less_ingredient(pizza_)
-
-    """
-    sns.set()    
-    sns.heatmap(pizza_)
-    plt.show()
-    """
+    total_tomatoes = len(pizza_[pizza_.values == 0])
+    total_mushrooms = len(pizza_[pizza_.values == 1])
+    
+    less_ingredient = 'tomatoes' if total_tomatoes < total_mushrooms else 'mushrooms'
 
     return pizza_, rows, cols, min_ingredients, max_cells, less_ingredient
 
@@ -47,10 +34,7 @@ def maximize_cuts(max_):
     
     for j in range(max_, (int(min_ingredients) * 2) - 1, -1):
         for i in range(j, 0, -1):
-            x_ = j % i
-            y_ = j % i
-
-            if x_ == 0 and y_ == 0:
+            if (j % i) == 0:
                 item_x = [int(j / i), i]
                 item_y = [i, int(j / i)]
                 if item_x not in possible_cuts:
@@ -145,12 +129,7 @@ if __name__ == '__main__':
                         good_slices.append([row_, slice_[col_final - 1][0], col_, slice_[col_final - 1][1]])
                         for element in slice_:
                             pizza_.at[element[0], element[1]] = 5
-                    less_ingredient = check_less_ingredient(pizza_)
 
-        """
-        sns.heatmap(pizza_)
-        plt.show()
-        """
 
         with open(file_ + '.out', 'w') as f_:
             f_.write(str(len(good_slices)) + "\n")
