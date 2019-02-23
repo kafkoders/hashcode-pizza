@@ -4,28 +4,42 @@ import math
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-flag = False
-elements_ = []
 
-with open('d_big.in') as input_:
-    for line in input_:
-        if flag is False:
-            rows, cols, min_ingredients, max_cells = line.split(' ')
-            flag = True
-        else:
-            elements_.append(np.array(list(line.rstrip())))
+input_files = ['a_example', 'b_small', 'c_medium', 'd_big']
 
-df = pd.DataFrame(elements_)
-pizza_ = df.replace(['M', 'T'], [1, 0])
 
-total_tomatoes = len(pizza_[pizza_.values == 0])
-total_mushrooms = len(pizza_[pizza_.values == 1])
-less_ingredient = 'tomatoes' if total_tomatoes < total_mushrooms else 'mushrooms'
+def check_less_ingredient(pizza_):
+    total_tomatoes = len(pizza_[pizza_.values == 0])
+    total_mushrooms = len(pizza_[pizza_.values == 1])
+    less_ingredient = 'tomatoes' if total_tomatoes < total_mushrooms else 'mushrooms'
 
-sns.set()
+    return less_ingredient
 
-sns.heatmap(pizza_)
-plt.show()
+
+def create_pizza_dataset(file_):
+    flag = False
+    elements_ = []
+
+    with open(file_ + '.in') as input_:
+        for line in input_:
+            if flag is False:
+                rows, cols, min_ingredients, max_cells = line.split(' ')
+                flag = True
+            else:
+                elements_.append(np.array(list(line.rstrip())))
+
+    df = pd.DataFrame(elements_)
+    pizza_ = df.replace(['M', 'T'], [1, 0])
+
+    less_ingredient = check_less_ingredient(pizza_)
+
+    """
+    sns.set()    
+    sns.heatmap(pizza_)
+    plt.show()
+    """
+
+    return pizza_, rows, cols, min_ingredients, max_cells, less_ingredient
 
 
 def maximize_cuts(max_):
@@ -115,25 +129,31 @@ def check_cuts(x, y, min_, max_, cuts_):
 
 
 if __name__ == '__main__':
-	good_slices = list()
-	possible_cuts = maximize_cuts(int(max_cells))
+    for file_ in input_files:
+        pizza_, rows, cols, min_ingredients, max_cells, less_ingredient = create_pizza_dataset(file_)
 
-	for row_ in range(pizza_.shape[0]):
-	    for col_ in range(pizza_.shape[1]):
-	        if pizza_.at[row_, col_] != 5:
-	            slices_ = check_cuts(row_, col_, int(min_ingredients), int(max_cells), possible_cuts)
-	            slice_ = matches_condition(pizza_, slices_)
-	            if slice_ is not None:
-	                col_final = len(slice_)
-	                good_slices.append([row_, slice_[col_final - 1][0], col_, slice_[col_final - 1][1]])
-	                for element in slice_:
-	                    pizza_.at[element[0], element[1]] = 5
+        good_slices = list()
+        possible_cuts = maximize_cuts(int(max_cells))
 
-	sns.heatmap(pizza_)
-	plt.show()
+        for row_ in range(pizza_.shape[0]):
+            for col_ in range(pizza_.shape[1]):
+                if pizza_.at[row_, col_] != 5:
+                    slices_ = check_cuts(row_, col_, int(min_ingredients), int(max_cells), possible_cuts)
+                    slice_ = matches_condition(pizza_, slices_)
+                    if slice_ is not None:
+                        col_final = len(slice_)
+                        good_slices.append([row_, slice_[col_final - 1][0], col_, slice_[col_final - 1][1]])
+                        for element in slice_:
+                            pizza_.at[element[0], element[1]] = 5
+                    less_ingredient = check_less_ingredient(pizza_)
 
-	with open('heuristic_big.out', 'w') as f_:
-    f_.write(str(len(good_slices)) + "\n")
-    
-    for value_ in good_slices:
-        f_.write(str(value_[0]) + " " + str(value_[2]) + " " + str(value_[1]) + " " + str(value_[3]) + "\n")
+        """
+        sns.heatmap(pizza_)
+        plt.show()
+        """
+
+        with open(file_ + '.out', 'w') as f_:
+            f_.write(str(len(good_slices)) + "\n")
+
+            for value_ in good_slices:
+                f_.write(str(value_[0]) + " " + str(value_[2]) + " " + str(value_[1]) + " " + str(value_[3]) + "\n")
