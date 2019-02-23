@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 
-input_files = ['a_example', 'b_small', 'c_medium', 'd_big']
+input_files = ['d_big']
 
 
 def create_pizza_dataset(file_):
@@ -73,7 +73,7 @@ def matches_condition(pizza_, pizza_slices):
     if not pizza_slices:
         return None
     else:
-        min_slice = pizza_slices[0]
+        min_slice = None
         max_cells = 0
         
         for pizza_slice in pizza_slices:
@@ -85,11 +85,16 @@ def matches_condition(pizza_, pizza_slices):
                 elif pizza_.at[cell_slice[0], cell_slice[1]] == 0:
                     tomatoes += 1
             if mushrooms >= int(min_ingredients) and tomatoes >= int(min_ingredients):
+                if min_slice is None:
+                    min_slice = pizza_slice
                 if min_slice.value_ > pizza_slice.value_ and max_cells < len(pizza_slice.slice_):
                     max_cells = len(pizza_slice.slice_)
                     min_slice = pizza_slice
 
-        return min_slice.slice_
+        if min_slice is not None:
+            return min_slice.slice_
+        else:
+            return None
 
 
 def check_cuts(x, y, min_, max_, cuts_):
